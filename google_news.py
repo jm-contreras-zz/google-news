@@ -2,11 +2,52 @@
 """
 Created on Wed Apr  2 21:17:38 2014
 
-@author: jmcontreras
+google_news.py scrapes news headlines and the name of their outlets from the
+Google News homepage on a set schedule. The readability of the headlines is
+assessed with the Flesch-Kincaid Grade Level test.
+
+After all the scheduled jobs are run, the data are cleaned: badly-formed text,
+non-sensical results, and duplicate reccords are reformatted or removed. The
+cleaned data are analyzed at the level of news outlets.
+
+Finally, google_news.R is called to create a visualization of the results.
+
+@author: Juan Manuel Contreras (juan.manuel.contreras.87@gmail.com)
 """
+
+
+"""
+Created on Wed May 07 16:16:42 2014
+
+password_checker.py receives command-line input as a comma-delimited list of
+passwords and checks if each is valid according to these criteria:
+
+1) between 6 and 12 characters
+2) at least 2 letters (1 lowercase, 1 uppercase)
+3) at least 1 number
+4) at least 1 symbol from this list [$, #, @]
+
+For each password, password_checker.py prints a message indicating that it is
+valid or, alternatively, the reason why it is invalid.
+
+SAMPLE INPUT
+'ABd1234@1,a F1#,2We3345'
+
+SAMPLE OUTPUT
+Password ABd1234@1 is acceptable!
+Password a F1# is shorter than 6 characters.
+Password 2We3345 does not include a required symbol [$, #, @].
+
+@author: juan.manuel.contreras.87@gmail.com
+"""
+
+
 
 def assess_readability(text):
 
+    '''Assess the readability of text with the Flesch-Kincaid Grade Level test,
+    as implemented in Python here: https://github.com/mmautner/readability'''
+    
     # Import module
     from readability.readability import Readability
     
@@ -14,6 +55,9 @@ def assess_readability(text):
     return Readability(text).FleschKincaidGradeLevel()
 
 def scrape(file_name):
+    
+    '''Scrape headlines and news outlet names from the Google News homepage,
+       assessing their readability and writing or appendin to a CSV file'''
     
     # Import modules
     from mechanize import Browser
@@ -84,6 +128,9 @@ def scrape(file_name):
     print '%s%s headlines on %s at %s' % (report_str, n_items, date, time)
 
 def schedule(file_name, n_jobs, frequency):
+
+    '''Schedule the scraper to execute every hour and shut it down after a
+       certain number of jos have been run'''
     
     # Import modules
     from apscheduler.scheduler import Scheduler
@@ -113,6 +160,9 @@ def schedule(file_name, n_jobs, frequency):
     sched.shutdown()
     
 def clean(file_name):
+    
+    '''Clean the data collected, including removing duplicate headlines, and
+       save the results to a different CSV file'''
     
     # Import modules
     from pandas import DataFrame, isnull
@@ -181,6 +231,9 @@ def clean(file_name):
 
 def grades2schools(df):
     
+    '''Determine the school (elementary, middle, high, or college+) a reader
+       needs to attend to parse the headline'''
+    
     # Transform each grade to its school equivalent
     df['elem'] = (df.flesch >= 1) & (df.flesch < 6)
     df['middle'] = (df.flesch >= 6) & (df.flesch < 9)
@@ -191,6 +244,8 @@ def grades2schools(df):
     return df
   
 def print_stats(data, stats):
+    
+    '''Print some relevant statistics'''    
     
     def print_percent(x):
         return round(x.sum() / x.shape[0] * 100, 2)
