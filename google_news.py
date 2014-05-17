@@ -15,34 +15,6 @@ Finally, google_news.R is called to create a visualization of the results.
 @author: Juan Manuel Contreras (juan.manuel.contreras.87@gmail.com)
 """
 
-
-"""
-Created on Wed May 07 16:16:42 2014
-
-password_checker.py receives command-line input as a comma-delimited list of
-passwords and checks if each is valid according to these criteria:
-
-1) between 6 and 12 characters
-2) at least 2 letters (1 lowercase, 1 uppercase)
-3) at least 1 number
-4) at least 1 symbol from this list [$, #, @]
-
-For each password, password_checker.py prints a message indicating that it is
-valid or, alternatively, the reason why it is invalid.
-
-SAMPLE INPUT
-'ABd1234@1,a F1#,2We3345'
-
-SAMPLE OUTPUT
-Password ABd1234@1 is acceptable!
-Password a F1# is shorter than 6 characters.
-Password 2We3345 does not include a required symbol [$, #, @].
-
-@author: juan.manuel.contreras.87@gmail.com
-"""
-
-
-
 def assess_readability(text):
 
     '''Assess the readability of text with the Flesch-Kincaid Grade Level test,
