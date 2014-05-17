@@ -51,7 +51,7 @@ def scrape(file_name):
                     'date_time': [date + ' ' + time] * n_items})
     
     # Iterate through outlets and titles
-    for i in range(n_items):
+    for i in xrange(n_items):
         
         # Declare raw outlet name
         raw_outlet = outlets[i].text_content()
@@ -68,9 +68,9 @@ def scrape(file_name):
         this_title = titles[i].text_content().encode('utf8')
 
         # Input results into data frame
-        df['outlet'][i] = this_outlet
-        df['title'][i] = this_title
-        df['flesch'][i] = assess_readability(this_title)
+        df.outlet[i] = this_outlet
+        df.title[i] = this_title
+        df.flesch[i] = assess_readability(this_title)
     
     # If a file exists, then append results to it; otherwise, create a file
     if isfile(file_name):
@@ -106,7 +106,7 @@ def schedule(file_name, n_jobs, frequency):
     sched.add_interval_job(scrape, args=[file_name], minutes=frequency,
                            misfire_grace_time=60)
     
-    # Wait to run n_jobs (assuming 1 job per hour)
+    # Wait to run n_jobs (assuming 1 job per hour, which is 3600 seconds)
     sleep(n_jobs * 3600)
     
     # Shutdown the scheduler
@@ -121,15 +121,17 @@ def clean(file_name):
     # Read CSV file
     df = DataFrame.from_csv(path=file_name, index_col=False)
     
-    # Declare patterns found in dirty news outlet and headline records
+    # Declare patterns found in dirty news outlet and headline records,
+    # including improper encoding
     s_pattern = '\d+ minute|\d+ hour| \(\w+tion\)| \(blog\)'
     t_pattern = '\[video\]| \(\+video\)'
+    e_pattern = '\x89\xdb\xd2 '
     
     # Initialize empty list of records to be removed
     remove = []
     
     # Iterate through the records
-    for i in range(df.shape[0]):
+    for i in xrange(df.shape[0]):
         # Define the news outlet and headline of the iteration
         s = df.outlet[i]
         t = df.title[i].lower()
@@ -140,6 +142,9 @@ def clean(file_name):
         # Clean the outlet, if necessary
         if search(s_pattern, s):
             df.outlet[i] = s[:[m.start() for m in finditer(s_pattern, s)][0]]
+        # Clean title with encoding error
+        if search(e_pattern, t):
+            t = t.replace(e_pattern, '')
         # Remove extra letters from Christian Science Monitor name
         if s.endswith('MonitorApr'):
             df.outlet[i] = s[:-3]
@@ -148,7 +153,7 @@ def clean(file_name):
             df.title[i] = t.replace('+', ' ')
             df.flesch[i] = assess_readability(df.title[i])
         # Remove video references from headlines
-        if search(t_pattern, t, IGNORECASE):
+        if search(t_pattern, t, IGNORECASE):                
             span = [m.span() for m in finditer(t_pattern, t, IGNORECASE)][0]
             df.title[i] = t[:span[0]] + t[span[1]:]
             df.flesch[i] = assess_readability(df.title[i])
@@ -166,10 +171,10 @@ def clean(file_name):
     # Drop duplicate records
     df['title_lower'] = [t.lower() for t in df.title]
     df.drop_duplicates(cols=['title_lower', 'outlet'], inplace=True)
+    df.drop(labels='title_lower', axis=1, inplace=True)
     
     # Save clean data to new file
-    file_name = file_name.replace('.', '_clean.')
-    df.to_csv(file_name, index=False)
+    df.to_csv(path_or_buf=file_name.replace('.', '_clean.'), index=False)
     
     # Return the DataFrame
     return df
@@ -215,7 +220,7 @@ def main():
     from scipy.stats import sem
     
     # Name the CSV file
-    file_name = 'google_news_data.csv'
+    file_name = 'google_news.csv'
     
     # Schedule and run the scraper
     schedule(file_name=file_name, n_jobs=10, frequency=30)
@@ -237,7 +242,7 @@ def main():
     flesch_stats = flesch_stats[flesch_stats.n_headlines >= 100]
     
     # Apply the same restriction to the non-aggregated data
-    df[df.source.isin(list(set(flesch_stats.outlet)))].head()
+    df = df[df.outlet.isin(list(set(flesch_stats.outlet)))]
     
     # Print statistics
     print_stats(data=df, stats=flesch_stats)
@@ -248,7 +253,7 @@ def main():
     # Plot results
     from subprocess import call
     Rscript = '/Library/Frameworks/R.framework/Versions/3.0/Reoutlets/Rscript'
-    call([Rscript, '/Users/jmcontreras/Github/google_news.R'])
+    call([Rscript, '/Users/jmcontreras/Github/google-news/google_news.R'])
     
 if __name__ == '__main__':
     
