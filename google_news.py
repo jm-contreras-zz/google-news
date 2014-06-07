@@ -7,7 +7,7 @@ Google News homepage on a set schedule. The readability of the headlines is
 assessed with the Flesch-Kincaid Grade Level test.
 
 After all the scheduled jobs are run, the data are cleaned: badly-formed text,
-non-sensical results, and duplicate reccords are reformatted or removed. The
+non-sensical results, and duplicate records are reformatted or removed. The
 cleaned data are analyzed at the level of news outlets.
 
 Finally, google_news.R is called to create a visualization of the results.
