@@ -275,7 +275,7 @@ def main():
     print_stats(data=df, stats=flesch_stats)
     
     # Save aggregated data
-    flesch_stats.to_csv('google_news_aggregate.csv')
+    flesch_stats.to_csv(file_name.replace('.', '_aggregate.'))
     
     # Plot results
     from subprocess import call
