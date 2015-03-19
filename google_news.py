@@ -14,6 +14,7 @@ Finally, google_news.R is called to create a visualization of the results.
 
 @author: Juan Manuel Contreras (juan.manuel.contreras.87@gmail.com)
 """
+
 # Import modules
 from time import sleep
 from numpy import mean
