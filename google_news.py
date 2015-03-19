@@ -14,14 +14,25 @@ Finally, google_news.R is called to create a visualization of the results.
 
 @author: Juan Manuel Contreras (juan.manuel.contreras.87@gmail.com)
 """
-
+# Import modules
+from time import sleep
+from numpy import mean
+from time import strftime
+from os.path import isfile
+from scipy.stats import sem
+from subprocess import call
+from mechanize import Browser
+from logging import basicConfig
+from lxml.html import fromstring
+from pandas import DataFrame, isnull
+from apscheduler.scheduler import Scheduler
+from re import finditer, search, IGNORECASE
+from readability.readability import Readability
+    
 def assess_readability(text):
 
     '''Assess the readability of text with the Flesch-Kincaid Grade Level test,
     as implemented in Python here: https://github.com/mmautner/readability'''
-    
-    # Import module
-    from readability.readability import Readability
     
     # Assess grade level    
     return Readability(text).FleschKincaidGradeLevel()
@@ -30,14 +41,6 @@ def scrape(file_name):
     
     '''Scrape headlines and news outlet names from the Google News homepage,
        assessing their readability and writing or appendin to a CSV file'''
-    
-    # Import modules
-    from mechanize import Browser
-    from lxml.html import fromstring
-    from pandas import DataFrame
-    from re import search
-    from time import strftime
-    from os.path import isfile
     
     # Get the current date and time
     date = strftime('%m/%d/%y')
@@ -103,14 +106,9 @@ def schedule(file_name, n_jobs, frequency):
 
     '''Schedule the scraper to execute every hour and shut it down after a
        certain number of jos have been run'''
-    
-    # Import modules
-    from apscheduler.scheduler import Scheduler
-    import logging
-    from time import sleep
 
     # Create a default logger
-    logging.basicConfig()
+    basicConfig()
 
     # Run the first job
     scrape(file_name)
@@ -135,10 +133,6 @@ def clean(file_name):
     
     '''Clean the data collected, including removing duplicate headlines, and
        save the results to a different CSV file'''
-    
-    # Import modules
-    from pandas import DataFrame, isnull
-    from re import finditer, search, IGNORECASE
     
     # Read CSV file
     df = DataFrame.from_csv(path=file_name, index_col=False)
@@ -242,10 +236,6 @@ def print_stats(data, stats):
   
 def main():
     
-    # Import modules
-    from numpy import mean
-    from scipy.stats import sem
-    
     # Name the CSV file
     file_name = 'google_news.csv'
     
@@ -278,7 +268,6 @@ def main():
     flesch_stats.to_csv(file_name.replace('.', '_aggregate.'))
     
     # Plot results
-    from subprocess import call
     Rscript = '/Library/Frameworks/R.framework/Versions/3.0/Reoutlets/Rscript'
     call([Rscript, '/Users/jmcontreras/Github/google-news/google_news.R'])
     
